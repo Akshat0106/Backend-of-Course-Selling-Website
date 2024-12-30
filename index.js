@@ -1,33 +1,17 @@
 const express=require('express')
 
+const {userRouter}=require("./routes/user")
+const {courseRouter}=require("./routes/course")
+const {adminRouter}=require("./routes/admin")
+
 const app=express()
 
-app.post('/users/signup',function(req,res){
-    res.json({
-        message:"You just signed up"
-    })
-})
+app.use('/user',userRouter)
+app.use('/course',courseRouter)
+app.use('/admin',adminRouter)
 
-app.post('/users/signin',function(req,res){
-    res.json({
-        message:"You just signed up"
-    })
-})
 
-app.get('/users/purchases',function(req,res){
-    res.json({
-        message:"You just signed up"
-    })
-})
+app.listen(3000)
 
-app.get('/course/purchase',function(req,res){
-    res.json({
-        message:"You just signed up"
-    })
-})
 
-app.get('/courses',function(req,res){
-    res.json({
-        message:"You just signed up"
-    })
-})
+
