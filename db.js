@@ -1,6 +1,5 @@
 const mongoose=require('mongoose')
-console.log("connected to");
-mongoose.connect("mongodb+srv://akshatgupta0401:Hiashu0401A@cluster0.viy0s.mongodb.net/course-app")
+// console.log("connected to");
 
 const Schema=mongoose.Schema
 const ObjectId=mongoose.Types.ObjectId
