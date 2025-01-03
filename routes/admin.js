@@ -4,7 +4,7 @@ const adminRouter = Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const zod = require("zod");
-const JWT_ADMIN_sECRET = "helloadminsecret";
+require('dotenv')=config()
 
 adminRouter.post("/signup", async function (req, res) {
   const requiredBody = zod.object({
@@ -62,7 +62,7 @@ adminRouter.post("/signin", async function (req, res) {
     const passwordMatched =await bcrypt.compare(password, admin.password);
 
     if (passwordMatched) {
-      const token = jwt.sign({ id: admin._id.toString() }, JWT_ADMIN_sECRET);
+      const token = jwt.sign({ id: admin._id.toString() }, process.env.JWT_ADMIN_sECRET);
       return res.json({
         message: "You are signed in!",
         token

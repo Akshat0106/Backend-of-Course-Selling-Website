@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const zod = require("zod");
 const { userModel } = require("../db");
 const userRouter = Router();
-const JWT_USER_SECRET = "hellosecret";
+require('dotenv').config()
 
 userRouter.post("/signup", async function (req, res) {
   const requiredBody = zod.object({
@@ -69,7 +69,7 @@ userRouter.post("/signin", async function (req, res) {
         {
           id: user._id.toString(),
         },
-        JWT_USER_SECRET
+        process.env.JWT_USER_SECRET
       );
 
       res.json({
