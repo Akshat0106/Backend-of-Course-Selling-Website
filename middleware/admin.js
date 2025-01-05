@@ -6,7 +6,7 @@ function adminMiddleWare(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_ADMIN_SECRET);
 
-    req.userId = decoded.id;
+    req.adminId = decoded.id;
     next();
   } catch (e) {
     res.status(403).json({

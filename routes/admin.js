@@ -1,10 +1,11 @@
 const { Router } = require("express");
-const { adminModel } = require("../db");
+const { adminModel, courseModel } = require("../db");
 const adminRouter = Router();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const zod = require("zod");
-require('dotenv')=config()
+const { adminMiddleWare } = require("../middleware/admin");
+require('dotenv').config()
 
 adminRouter.post("/signup", async function (req, res) {
   const requiredBody = zod.object({
@@ -80,21 +81,141 @@ adminRouter.post("/signin", async function (req, res) {
   }
 });
 
-adminRouter.post("/course", function (req, res) {
-  res.json({
-    message: "You just signed up",
+adminRouter.post("/course",adminMiddleWare,async function (req, res) {
+  const adminId=req.adminId
+
+  const requiredBody=zod.object({
+    title:zod.string().min(3),
+    description:zod.string().min(10),
+    imageUrl:zod.string().url(),
+    price:zod.number().positive()
+  })
+
+  const parseBody=requiredBody.safeParse(req.body)
+
+  if(!parseBody.success){
+    return res.json({
+      message:"Incorrect data format",
+      error:parseBody.error
+    })
+  }
+
+  const {title,description,imageUrl,price}=req.body
+
+  const course=await courseModel.create({
+    title,
+    description,
+    imageUrl,
+    price,
+    creatorId:adminId
+  })
+
+  res.status(200).json({
+    message: "Course created",
+    courseId:course._id
   });
 });
 
-adminRouter.put("/course", function (req, res) {
-  res.json({
-    message: "You just signed up",
+adminRouter.put("/course", adminMiddleWare,async function (req, res) {
+  const adminId=req.adminId
+
+  const requireBody=zod.object({
+    courseId:zod.string().min(5),
+    title:zod.string().min(3).optional(),
+    description:zod.string().min(5).optional(),
+    imageUrl:zod.string().url().min(5).optional(),
+    price:zod.number().positive().optional()
+  })
+
+  const parseData=requireBody.safeParse(req.body)
+
+  if(!parseData.success){
+    return res.json({
+      message:"Invalid data",
+      error:parseData.error
+    })
+  }
+
+  const {courseId,title,description,imageUrl,price}=req.body
+
+  const course=await courseModel.findOne({
+    _id:courseId,
+    creatorId:adminId
+  })
+
+  if(!course){
+    return res.json({
+      message:"Course not found"
+    })
+  }
+
+  await courseModel.updateOne(
+    {
+      _id:courseId,
+      creatorId:adminId
+    },
+    {
+      title:title||course.title,
+      description:description||course.description,
+      imageUrl:imageUrl||course.imageUrl,
+      price:price||course.price
+    }
+  )
+
+
+  res.status(200).json({
+    message: "Course updated",
   });
 });
 
-adminRouter.get("/course/bulk", function (req, res) {
-  res.json({
-    message: "You just signed up",
+adminRouter.delete("/course",adminMiddleWare,async function(req,res){
+  const adminId=req.adminId
+
+  const requireBody=zod.object({
+    courseId:zod.string().min(5)
+  })
+
+  const parseBody=requireBody.safeParse(req.body)
+
+  if(!parseBody.success){
+    return res.json({
+      message:"Incorrect data format",
+      error:parseBody.error
+    })
+  }
+
+  const {courseId}=req.body
+
+  const course=await courseModel.findOne({
+    _id:courseId,
+    creatorId:adminId
+  })
+
+  if(!course){
+    return res.status(404).json({
+      message:"Course not found"
+    })
+  }
+
+  await courseModel.deleteOne({
+    _id:courseId,
+    creatorId:adminId
+  })
+
+  res.status(200).json({
+    message:"Course deleted!"
+  })
+})
+
+adminRouter.get("/course/bulk",adminMiddleWare,async function (req, res) {
+  const adminId=req.adminId
+
+  const courses=await courseModel.find({
+    creatorId:adminId
+  })
+
+  res.status(200).json({
+    courses
   });
 });
 
