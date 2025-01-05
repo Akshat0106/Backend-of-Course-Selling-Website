@@ -2,7 +2,8 @@ const { Router } = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const zod = require("zod");
-const { userModel } = require("../db");
+const { userModel, purchaseModel, courseModel } = require("../db");
+const { userMiddleWare } = require("../middleware/user");
 const userRouter = Router();
 require('dotenv').config()
 
@@ -89,9 +90,31 @@ userRouter.post("/signin", async function (req, res) {
   }
 });
 
-userRouter.get("/purchases", function (req, res) {
-  res.json({
-    message: "You just signed up",
+userRouter.get("/purchases",userMiddleWare,async function (req, res) {
+  const userId=req.userId
+
+  if(!userId){
+    res.status(401).json({
+      message:"Unauthorized access"
+    })
+  }
+
+  const purchases=await purchaseModel.find({
+    userId
+  })
+
+  if(!purchases.length){
+    return res.status(404).json({
+      message:"No purchases found"
+    })
+  }
+
+  const purchasesCourseId=purchases.map(purchase=>purchase.courseId)
+  const courseData=await courseModel.find({_id: { $in: purchasesCourseId } })
+
+  res.status(200).json({
+    purchases,
+    courseData
   });
 });
 
